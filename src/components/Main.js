@@ -1,7 +1,8 @@
 import {Container} from "@material-ui/core";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import CircularProgress from '@material-ui/core/CircularProgress';import { DataGrid } from '@material-ui/data-grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import {DataGrid} from '@material-ui/data-grid';
 
 
 function Main() {
@@ -25,7 +26,7 @@ function Main() {
                     const time = row.c[0].f;
                     date.setHours(time.split(":")[0]);
                     date.setMinutes(time.split(":")[1]);
-                    return {id: i, time:date.getTime(), originTime:time};
+                    return {id: i, time: date.getTime(), originTime: time};
                 });
                 setTime(setData);
                 getDate();
@@ -36,25 +37,49 @@ function Main() {
     }
 
     const getDate = () => {
-        if(time) {
-            time.forEach(t =>{
+        if (time) {
+            time.forEach(t => {
                 console.log((t.time - new Date().getTime()) / 60000, t.originTime)
             })
         }
     };
 
+    const getColumns = () => {
+        let columns = [];
+        let num = 0;
+        time.forEach((t, i) => {
+            if (i % 5 === 0) {
+                columns.push({field: 'data' + num++})
+            }
+        });
+        return columns;
+    };
+
+    const getRows = () => {
+        const columns = getColumns();
+        let rows = new Array(getColumns().length);
+        columns.forEach((column, i) => {
+           let data = {id: i};
+           columns.forEach((d, o) => {
+               if(time[o * columns.length + i]) data[d.field] = time[o * columns.length + i].originTime;
+               else data[d.field] = null;
+           });
+           rows[i] = data;
+
+        });
+
+        return rows;
+    };
+
     return (
         <Container>
+            {new Date().toString()}
             <div>
                 {time ?
-                    <div style={{ height: 1000, width: '100%' }}>
+                    <div style={{height: 500, width: '100%'}}>
                         <DataGrid
-                            columns={[
-                                { field: 'username', width: 200 },
-                            ]}
-                            rows={time.map(t => {
-                                return {id: t.id,username: t.originTime}
-                            })}
+                            columns={getColumns()}
+                            rows={getRows()}
                         />
                     </div> : <CircularProgress/>}
             </div>
